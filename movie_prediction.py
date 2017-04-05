@@ -124,7 +124,9 @@ for entry in x:
 predictions = open('predicted_ratings.txt', 'w')
 predictions.write('Id,rating\n')
 ####### NAIVE BAYESIAN #########
+i = 0
 for sample_test in data_test:
+	i += 1
 	#sample_test = data_test[15]
 	sample_test = sample_test.split(',')
 	test_id = int(sample_test[0])
@@ -159,7 +161,7 @@ for sample_test in data_test:
 				if item[0] == 'M': count_male += 1
 				if item[0] == 'F': count_female += 1
 				count_rating_match += 1
-				if test_user_gender != 'N/A' and test_user_gender == item[0] :
+				if test_user_gender != 'N/A' and item[0] != 'N/A' and test_user_gender == item[0] :
 					count_gender_matches += 1
 				if test_user_age != 'N/A' and item[1] != 'N/A' and test_user_age == item[1]:
 					count_age_matches += 1
@@ -183,10 +185,10 @@ for sample_test in data_test:
 				prob_gender = 0.5
 		else:
 			prob_gender = count_gender_matches/count_rating_match
-
+		age_std = np.std(ages)
 		if count_age_matches == 0:
-			if (len(ages) != 0):
-				prob_age = 1/(np.sqrt(2*np.pi*np.std(ages)))
+			if (len(ages) != 0 and age_std != 0):
+				prob_age = 1/(np.sqrt(2*np.pi*age_std))
 			else: prob_age = 0.02
 		else:
 			prob_age = count_age_matches/count_rating_match
@@ -210,13 +212,20 @@ for sample_test in data_test:
 		rating_probs.append(prob_rating)
 		#print (prob_rating)
 
-	predicted_rating = np.argmax(rating_probs) + 1
+	predicted_rating = 0
+	if ((rating_probs[0] + rating_probs[1] + rating_probs[2])/3 > (rating_probs[3] + rating_probs[4])/2):
+		predicted_rating = np.argmax(rating_probs[:3]) + 1
+	else:
+		predicted_rating = np.argmax(rating_probs[3:]) + 4
+	#predicted_rating = np.argmax(rating_probs) + 1
 	#print (rating_probs)
 	#print (predicted_rating)
-
+	if i%1000 == 0: print("i:", i)
 
 	prediction = str(test_id) + ',' + str(predicted_rating) + '\n'
 	predictions.write(prediction)
+
+	#if (i == 10): break
 
 
 
