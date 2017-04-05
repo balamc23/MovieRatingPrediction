@@ -1,11 +1,11 @@
 #CS 412 Final Project (Movie Ratings Prediction: Kaggle)
 
 import numpy as np
-import numpy.linalg as la
-import scipy as sp
+#import numpy.linalg as la
+#import scipy as sp
 import math as m
-import matplotlib.pyplot as plt
-from operator import itemgetter as ig
+#import matplotlib.pyplot as plt
+#from operator import itemgetter as ig
 # import pandas as pd
 # import tensorflow as tf
 # from sklearn.naive_bayes import GaussianNB
@@ -138,8 +138,8 @@ for sample_test in data_test:
 	test_movie_year = test_movie_attributes[0]
 	test_movie_genres = set(test_movie_attributes[1])
 
-	print (test_movie_attributes)
-	print (test_user_attributes)
+	#print (test_movie_attributes)
+	#print (test_user_attributes)
 
 	rating_probs = []
 
@@ -208,11 +208,11 @@ for sample_test in data_test:
 
 		prob_rating = prob_age * prob_gender * prob_occ * prob_year * prob_genre * (count_rating_match/len(train))
 		rating_probs.append(prob_rating)
-		print (prob_rating)
+		#print (prob_rating)
 
 	predicted_rating = np.argmax(rating_probs) + 1
-	print (rating_probs)
-	print (predicted_rating)
+	#print (rating_probs)
+	#print (predicted_rating)
 
 
 	prediction = str(test_id) + ',' + str(predicted_rating) + '\n'
