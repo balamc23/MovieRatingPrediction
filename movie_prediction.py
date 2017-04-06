@@ -247,11 +247,8 @@ for sample_test in data_test:
 	prediction = str(test_id) + ',' + str(predicted_rating) + '\n'
 	predictions.write(prediction)
 
-<<<<<<< HEAD
-	if (1%500 == 0): print (i, prediction)
-=======
 	if (i%500 == 0): print (i, prediction)
->>>>>>> 09ad45f66275a06170742f47e9feb97af2542887
+
 
 
 
