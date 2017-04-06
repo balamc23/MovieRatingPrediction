@@ -16,7 +16,7 @@ data_test = open('./Data/test.txt').readlines()
 #data_train = open('./Data/train.txt').readlines()
 data_user = open('./Data/user.txt').readlines()
 
-# genres = {}
+#genres = {}
 
 data_movie.pop(0)
 data_user.pop(0)
@@ -29,17 +29,17 @@ users = {}
 
 # # print (movie_details)
 
-# # for movie in movie_details:
-# # 	genre = movie[2].split('|')
-# # 	for gen in genre:
-# # 		gen = gen.strip('\n')
-# # 		if (gen in genres):
-# # 			genres[gen] += 1
-# # 		else:
-# # 			genres[gen] = 1
+# for movie in movie_details:
+# 	genre = movie[2].split('|')
+# 	for gen in genre:
+# 		gen = gen.strip('\n')
+# 		if (gen in genres):
+# 			genres[gen] += 1
+# 		else:
+# 			genres[gen] = 1
 
-# # for gen, val in sorted(genres.items(), key = ig(1), reverse = True):
-# # 	print (gen, ": ", val)
+# for gen, val in sorted(genres.items(), key = ig(1), reverse = True):
+# 	print (gen, ": ", val)
 
 
 for movie in movie_details:
@@ -116,7 +116,9 @@ for entry in x:
 	age = int(entry[1]) if entry[1] != 'N/A' else 'N/A'
 	occupation = int(entry[2]) if entry[2] != 'N/A' else 'N/A'
 	year = int(entry[3]) if entry[3] != 'N/A' else 'N/A'
-	genres = set(entry[4].split('/'))
+	genres = []
+	if entry[4] != 'N/A': 
+		genres = entry[4].split('/ ')
 	rating = int(entry[5])
 	train.append((gender, age, occupation, year, genres, rating))
 
@@ -124,10 +126,46 @@ for entry in x:
 predictions = open('predicted_ratings.txt', 'w')
 predictions.write('Id,rating\n')
 ####### NAIVE BAYESIAN #########
+
+
+count_rating = np.zeros(5)
+count_male = np.zeros(5)
+count_female = np.zeros(5)
+ages = [[] for i in range(5)]
+occupations = [{} for i in range(5)]
+years = [[] for i in range(5)]
+
+genre_dict = {'Drama': 1, 'Comedy': 2, 'Thriller' : 3, 'Action' : 4, 'Romance': 5, 'Horror': 6, 'Adventure': 7, 'Sci-Fi': 8, 'Children\'s' : 9, 'Crime': 10, 'War' : 11, 'Documentary' : 12, 'Musical': 13, 'Animation': 14, 'Mystery': 15, 'Fantasy': 16, 'Western': 17, 'Film-Noir': 18}
+
+count_genres = np.zeros((5,18))
+
+
+
+for item in train:
+	rating = int(item[5])
+	rating_idx = rating - 1
+	count_rating[rating_idx] += 1
+	if item[1] != 'N/A':
+		ages[rating_idx].append(item[1])
+	if item[0] == 'M': 
+		count_male[rating_idx] += 1
+	if item[0] == 'F': 
+		count_female[rating_idx] += 1
+	if item[2] != 'N/A':
+		if int(item[2]) in occupations[rating_idx]:
+			occupations[rating_idx][item[2]] += 1
+		else:
+			occupations[rating_idx][item[2]] = 1
+	if item[3] != 'N/A':
+		years[rating_idx].append(int(item[3]))
+	train_set_genre = item[4]
+	if (train_set_genre != 'N/A'):
+		for genre in train_set_genre:
+			if genre != 'N/A':
+				count_genres[rating_idx][genre_dict[genre]-1] += 1
 i = 0
 for sample_test in data_test:
 	i += 1
-	#sample_test = data_test[15]
 	sample_test = sample_test.split(',')
 	test_id = int(sample_test[0])
 	test_user_id = int(sample_test[1])
@@ -135,97 +173,82 @@ for sample_test in data_test:
 	test_user_attributes = users[test_user_id]
 	test_user_gender = test_user_attributes[0]
 	test_user_age = int(test_user_attributes[1]) if test_user_attributes[1] != 'N/A' else 'N/A'
-	test_user_occupation = test_user_attributes[2]
+	test_user_occupation = int(test_user_attributes[2]) if test_user_attributes[2] != 'N/A' else 'N/A'
 	test_movie_attributes = movies[test_movie_id]
-	test_movie_year = test_movie_attributes[0]
-	test_movie_genres = set(test_movie_attributes[1])
-
-	#print (test_movie_attributes)
-	#print (test_user_attributes)
+	test_movie_year = int(test_movie_attributes[0]) if test_movie_attributes[0] != 'N/A' else 'N/A'
+	test_movie_genres = test_movie_attributes[1]
 
 	rating_probs = []
 
 	for rating in range(1,6):
-		count_age_matches = 0
-		count_gender_matches = 0
-		count_occupation_matches = 0
-		count_year_matches = 0
-		count_genre_matches = 0
-		count_rating_match = 0
-		ages = []
-		count_male = 0
-		count_female = 0
-		for item in train:
-			if item[5] == rating:
-				if item[1] != 'N/A': ages.append(age)
-				if item[0] == 'M': count_male += 1
-				if item[0] == 'F': count_female += 1
-				count_rating_match += 1
-				if test_user_gender != 'N/A' and item[0] != 'N/A' and test_user_gender == item[0] :
-					count_gender_matches += 1
-				if test_user_age != 'N/A' and item[1] != 'N/A' and test_user_age == item[1]:
-					count_age_matches += 1
-				if test_user_occupation != 'N/A' and item[2] != 'N/A' and test_user_occupation == item[2]:
-					count_occupation_matches += 1
-				if test_movie_year != 'N/A' and item[3] != 'N/A' and test_movie_year == item[3]:
-					count_year_matches += 1
-				if test_movie_genres & item[4] != set():
-					count_genre_matches += 1
+
 		prob_age = 0.
 		prob_gender = 0.
 		prob_occ = 0.
 		prob_year = 0.
 		prob_genre = 0.
-		
-		if count_gender_matches == 0:
-			if (count_male > 0 or count_female > 0):
-				prob_gender = count_male if count_male > count_female else count_female
-				prob_gender /= count_male + count_female
+
+		age_std = np.std(ages[rating-1])
+		age_mean = np.average(ages[rating-1])
+		if (age_std != 0 and age_mean != 0):
+			if test_user_age != 'N/A':
+				prob_age = (1/(np.sqrt(2*np.pi*age_std))) * np.exp(-(test_user_age-age_mean)**2/(2*age_std**2))
 			else:
-				prob_gender = 0.5
-		else:
-			prob_gender = count_gender_matches/count_rating_match
-		age_std = np.std(ages)
-		if count_age_matches == 0:
-			if (len(ages) != 0 and age_std != 0):
 				prob_age = 1/(np.sqrt(2*np.pi*age_std))
-			else: prob_age = 0.02
 		else:
-			prob_age = count_age_matches/count_rating_match
+			prob_age = 0.02
 
-		if count_occupation_matches == 0:
+		if test_user_gender != 'N/A':
+			if test_user_gender == 'M':
+				prob_gender = count_male[rating-1]
+			elif test_user_gender == 'F':
+				prob_gender = count_female[rating-1]
+			prob_gender /= count_male[rating-1] + count_female[rating-1]
+		else:
+			prob_gender = 0.5
+
+		if test_user_occupation != 'N/A':
+			if int(test_user_occupation) in occupations[rating-1]:
+				prob_occ = occupations[rating-1][int(test_user_occupation)]/sum(occupations[rating-1].values())
+			else:
+				prob_occ = max(occupations[rating-1].values())/sum(occupations[rating-1].values())
+		else:
 			prob_occ = 0.1
-		else:
-			prob_occ = count_occupation_matches/count_rating_match
 
-		if count_year_matches == 0:
+		years_std = np.std(years[rating-1])
+		years_mean = np.average(years[rating-1])
+		if (years_std != 0 and years_mean != 0):
+			if test_movie_year != 'N/A':
+				prob_year = (1/(np.sqrt(2*np.pi*years_std))) * np.exp(-(test_movie_year-years_mean)**2/(2*years_std**2))
+			else:
+				prob_year = 1/(np.sqrt(2*np.pi*years_std))
+		else:
 			prob_year = 0.02
-		else:
-			prob_year = count_year_matches/count_rating_match
 
-		if count_genre_matches == 0:
-			prob_genre = 0.1
+		max_genre = 0
+		for genre in test_movie_genres:
+			if (genre != 'N/A'):
+				max_genre = max(max_genre, count_genres[rating-1][genre_dict[genre]-1])
+		if test_movie_genres != 'N/A':
+			prob_genre = max_genre/sum(count_genres[rating-1])
 		else:
-			prob_genre = count_genre_matches/count_rating_match
+			prob_genre = max(count_genres[rating-1])/sum(count_genres[rating-1])
 
-		prob_rating = prob_age * prob_gender * prob_occ * prob_year * prob_genre * (count_rating_match/len(train))
+		prob_rating = prob_age * prob_gender * prob_occ * prob_year * prob_genre * (count_rating[rating-1]/len(train))
 		rating_probs.append(prob_rating)
-		#print (prob_rating)
 
 	predicted_rating = 0
-	if ((rating_probs[0] + rating_probs[1] + rating_probs[2])/3 > (rating_probs[3] + rating_probs[4])/2):
-		predicted_rating = np.argmax(rating_probs[:3]) + 1
-	else:
-		predicted_rating = np.argmax(rating_probs[3:]) + 4
-	#predicted_rating = np.argmax(rating_probs) + 1
-	#print (rating_probs)
-	#print (predicted_rating)
-	if i%1000 == 0: print("i:", i)
+	# if ((rating_probs[0] + rating_probs[1] + rating_probs[2])/3 > (rating_probs[3] + rating_probs[4])/2):
+	# 	predicted_rating = np.argmax(rating_probs[:3]) + 1
+	# else:
+	# 	predicted_rating = np.argmax(rating_probs[3:]) + 4
+	predicted_rating = np.argmax(rating_probs) + 1
 
 	prediction = str(test_id) + ',' + str(predicted_rating) + '\n'
 	predictions.write(prediction)
 
-	#if (i == 10): break
+	if (1%1 == 0): print (i, prediction)
+
 
 
 
