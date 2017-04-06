@@ -170,7 +170,6 @@ for item in train:
 				count_genres[rating_idx][genre_dict[genre]-1] += 1
 
 i = 0
-print (len(data_test))
 for sample_test in data_test[6000*start:min(6000*(start+1),len(data_test))]:
 	i += 1
 	sample_test = sample_test.split(',')
