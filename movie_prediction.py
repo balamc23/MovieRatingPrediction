@@ -253,7 +253,7 @@ for sample_test in data_test[6000*start:min(6000*(start+1),len(data_test))]:
 	prediction = str(test_id) + ',' + str(predicted_rating) + '\n'
 	predictions.write(prediction)
 
-	if (i%50 == 0): print (i, prediction, end = '')
+	if (i%500 == 0): print (i, prediction, end = '')
 
 
 
