@@ -4,12 +4,15 @@ import numpy as np
 #import numpy.linalg as la
 #import scipy as sp
 import math as m
+from sys import argv
 #import matplotlib.pyplot as plt
 #from operator import itemgetter as ig
 # import pandas as pd
 # import tensorflow as tf
 # from sklearn.naive_bayes import GaussianNB
 
+script, start = argv
+start = int(start)
 data_movie = open('./Data/movie.txt').readlines()
 #data_sample = open('/Data/sample.txt').readlines()
 data_test = open('./Data/test.txt').readlines()
@@ -101,14 +104,14 @@ x = updated_training_set.readlines()
 x.pop(0)
 train = []
 
-total_count = 0
+#total_count = 0
 # count_male = 0
 # count_female = 0
 #ages = []
 
 
 for entry in x:
-	total_count += 1
+	#total_count += 1
 	entry = entry.split(',')
 	for i, k in enumerate(entry):
 		entry[i] = entry[i].strip(' ')
@@ -122,9 +125,11 @@ for entry in x:
 	rating = int(entry[5])
 	train.append((gender, age, occupation, year, genres, rating))
 
+#train = np.array(train)
 
-predictions = open('predicted_ratings.txt', 'w')
-predictions.write('Id,rating\n')
+fname = 'predicted_ratings_' + str(start) + '.txt'
+predictions = open(fname, 'w')
+if (start == 0): predictions.write('Id,rating\n')
 ####### NAIVE BAYESIAN #########
 
 
@@ -163,8 +168,10 @@ for item in train:
 		for genre in train_set_genre:
 			if genre != 'N/A':
 				count_genres[rating_idx][genre_dict[genre]-1] += 1
+
 i = 0
-for sample_test in data_test:
+print (len(data_test))
+for sample_test in data_test[6000*start:min(6000*(start+1),len(data_test))]:
 	i += 1
 	sample_test = sample_test.split(',')
 	test_id = int(sample_test[0])
@@ -247,7 +254,7 @@ for sample_test in data_test:
 	prediction = str(test_id) + ',' + str(predicted_rating) + '\n'
 	predictions.write(prediction)
 
-	if (i%500 == 0): print (i, prediction)
+	if (i%50 == 0): print (i, prediction, end = '')
 
 
 
