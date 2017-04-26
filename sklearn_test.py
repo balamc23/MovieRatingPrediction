@@ -6,7 +6,7 @@ from sklearn.preprocessing import Imputer
 import scipy.stats as sp
 
 training_data = pd.read_csv('new_train.csv', sep='\s*,\s*', header=0, encoding='ascii', engine='python')
-#training_data = training_data.head(50)
+training_data = training_data.head(50)
 target = training_data["Rating_Given"]
 training_data['Genre'] = training_data['Genre'].astype('category')
 
@@ -57,7 +57,7 @@ training_data['Gender'].fillna(training_data.groupby('Occupation')['Gender'].tra
 
 svc.fit(training_data, target)
 test_data = pd.read_csv('test.csv')
-#test_data = test_data.head(50)
+test_data = test_data.head(50)
 
 data_movie = pd.read_csv('movie.txt')
 data_user = pd.read_csv('user.txt')
@@ -110,6 +110,12 @@ test_data = test_data[['Gender', 'Age', 'Occupation', 'Year_Movie_Was_Released',
        'Thriller', 'Western', 'Film-Noir', 'Horror', 'Animation']]
 pred = svc.predict(test_data)
 print (pred)
+
+predictions = open('predictions.txt', 'w')
+predictions.write('Id,rating\n')
+for i in range(len(pred)):
+    prediction = str(test_ids[i]) + ',' + str(pred[i]) + '\n'
+    predictions.write(prediction)
 
 
 
