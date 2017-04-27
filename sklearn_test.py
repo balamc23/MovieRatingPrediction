@@ -4,7 +4,10 @@ import pandas as pd
 import sklearn
 from sklearn.preprocessing import Imputer
 import scipy.stats as sp
-from sklearn.svm import SVC
+#from sklearn.svm import SVC
+#from sklearn.linear_model import LinearRegression
+#from sklearn.naive_bayes import GaussianNB
+from sklearn import neighbors
 
 training_data = pd.read_csv('new_train.csv', sep='\s*,\s*', header=0, encoding='ascii', engine='python')
 #training_data = training_data.head(50)
@@ -53,11 +56,12 @@ for i in genre_dict:
     training_data[i].fillna(training_data.groupby('Age')[i].transform(lambda x: 1 if x.mean() > 0.055 else 0), inplace=True)
 training_data['Gender'].fillna(training_data.groupby('Occupation')['Gender'].transform(lambda x: 1 if x.mean() >= 0.5 else 0), inplace=True)
 
+training_data = training_data[['Gender', 'Age', 'Occupation', 'Year_Movie_Was_Released', 'War', 'Mystery', 'Fantasy', 'Musical', 'Crime', 'Adventure', 'Sci-Fi',
+       'Drama', 'Action', 'Documentary', 'Romance', 'Comedy', "Children's",
+       'Thriller', 'Western', 'Film-Noir', 'Horror', 'Animation']]
+
+
 print ("Training Data Tasks Done.")
-
-
-svc = SVC(kernel='linear')
-svc.fit(training_data, target)
 
 test_data = pd.read_csv('test.csv')
 #test_data = test_data.head(50)
@@ -101,17 +105,33 @@ test_data = test_data[['Gender', 'Age', 'Occupation', 'Year_Movie_Was_Released',
        'Drama', 'Action', 'Documentary', 'Romance', 'Comedy', "Children's",
        'Thriller', 'Western', 'Film-Noir', 'Horror', 'Animation']]
 
+
 print ("Test Data tasks done")
 
-pred = svc.predict(test_data)
+#svc = SVC(kernel='linear')
+#svc.fit(training_data, target)
+#lr = LinearRegression(normalize=True)
+#lr.fit(training_data, target)
+# gnb = GaussianNB()
+# gnb.fit(training_data, target)
+knn = neighbors.KNeighborsClassifier(n_neighbors=5)
+knn.fit(training_data, target)
+
+print ("Classifier Made")
+
+
+#pred = svc.predict(test_data)
+#pred = lr.predict(test_data)
+#pred = gnb.predict(test_data)
+pred = knn.predict_proba(test_data)
 #print (pred)
 
 print ("Predictions Done")
 
-predictions = open('sk_learn_svm_predictions.txt', 'w')
+predictions = open('sk_learn_knn_predictions.txt', 'w')
 predictions.write('Id,rating\n')
 for i in range(len(pred)):
-    prediction = str(test_ids[i]) + ',' + str(pred[i]) + '\n'
+    prediction = str(test_ids[i]) + ',' + str(int(round(pred[i]))) + '\n'
     predictions.write(prediction)
 
 print ("Done!")
